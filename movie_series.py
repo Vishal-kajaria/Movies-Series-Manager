@@ -59,6 +59,14 @@ def display_all(conn, table):
     return cursor.fetchall()
 
 
+def update_record(conn, table, column, new_value, name):
+    conn.execute(f"UPDATE {table} SET {column} = ? WHERE name = ?", (new_value, name))
+
+
+def delete_from_database(conn, name, table):
+    conn.execute(f"DELETE FROM {table} WHERE name = ?", (name,))
+
+
 def main():
     db_file = 'media_manager.db'
     conn = create_connection(db_file)
