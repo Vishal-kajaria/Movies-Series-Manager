@@ -59,12 +59,32 @@ def display_all(conn, table):
     return cursor.fetchall()
 
 
+# Updating a movie or series in the database
 def update_record(conn, table, column, new_value, name):
-    conn.execute(f"UPDATE {table} SET {column} = ? WHERE name = ?", (new_value, name))
+    try:
+        with conn:
+            cursor = conn.execute(f"SELECT * FROM {table} WHERE name = ?", (name,))
+            if cursor.fetchone():  # Check if the record exists
+                conn.execute(f"UPDATE {table} SET {column} = ? WHERE name = ?", (new_value, name))
+                print(f"{table.capitalize()} '{name}' updated successfully.")
+            else:
+                print(f"{table.capitalize()} '{name}' not found.")
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
 
 
+# Deleting a movie or series from the database
 def delete_from_database(conn, name, table):
-    conn.execute(f"DELETE FROM {table} WHERE name = ?", (name,))
+    try:
+        with conn:
+            cursor = conn.execute(f"SELECT * FROM {table} WHERE name = ?", (name,))
+            if cursor.fetchone():  # Check if the record exists
+                conn.execute(f"DELETE FROM {table} WHERE name = ?", (name,))
+                print(f"{table.capitalize()} '{name}' deleted successfully.")
+            else:
+                print(f"{table.capitalize()} '{name}' not found.")
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
 
 
 def main():
@@ -76,18 +96,20 @@ def main():
     choice = 0
     print("*** Welcome to movie/series manager ***\n")
 
-    # While choice is not 4 (i.e., quitting), it will execute.
-    while choice != 4:
+    # While choice is not 6 (i.e., quitting), it will execute.
+    while choice != 6:
         print("1. I want to add a movie or series.")
         print("2. I want to get a quick review of a movie/series.")
         print("3. I want to display all movie/series.")
-        print("4. QUIT\n")
+        print("4. I want to update a movie or series.")
+        print("5. I want to delete a movie or series.")
+        print("6. QUIT\n")
 
         choice = int(input("What do you want? "))
 
         # If user inputs 1:
         if choice == 1:
-            print("\n 1. You are adding a movie/series...")
+            print("\n1. You are adding a movie/series...")
             ask = input("\tDo you want to add a movie or series? ")
 
             if ask == "movie":
@@ -109,11 +131,11 @@ def main():
 
         # If user inputs 2:
         elif choice == 2:
-            print("\n 2. You want to get a quick review of a movie/series.")
+            print("\n2. You want to get a quick review of a movie/series.")
             ask = input("Is it a movie or series? ")
 
             if ask == "movie":
-                movie1 = input("\tEnter the name of the movie >>> ")
+                movie1 = input("\tEnter the name of the movie >>> \n")
                 print("Looking for that movie...")
                 movie = get_from_database(conn, movie1, 'movie')
                 if movie:
@@ -132,7 +154,7 @@ def main():
 
         # If user inputs 3:
         elif choice == 3:
-            print("\n 3. Displaying all movies/series.....")
+            print("\n3. Displaying all movies/series...")
             asking = input("Do you want to display movies or series? ")
 
             if asking == "movie":
@@ -147,9 +169,40 @@ def main():
 
         # If user inputs 4:
         elif choice == 4:
-            print("\n 4. Quitting out of the program...... ")
+            print("\n4. You want to update a movie/series...")
+            ask = input("\tIs it a movie or series? ")
 
-    print("Program Terminated!")
+            if ask == "movie":
+                movie = input("\tEnter the name of the movie to update >>> ")
+                column = input("\tEnter the column to update (name, release_year, genre, director, cast) >>> ")
+                new_value = input(f"\tEnter the new value for {column} >>> ")
+                update_record(conn, 'movie', column, new_value, movie)
+
+            elif ask == "series":
+                series = input("\tEnter the name of the series to update >>> ")
+                column = input("\tEnter the column to update (name, release_year, genre, director, cast, seasons) >>> ")
+                new_value = input(f"\tEnter the new value for {column} >>> ")
+                update_record(conn, 'series', column, new_value, series)
+
+            # If user inputs 5:
+        elif choice == 5:
+            print("\n5. You want to delete a movie/series...")
+            ask = input("\tIs it a movie or series? ")
+
+            if ask == "movie":
+                movie = input("\tEnter the name of the movie to delete >>> ")
+                delete_from_database(conn, movie, 'movie')
+
+            elif ask == "series":
+                series = input("\tEnter the name of the series to delete >>> ")
+                delete_from_database(conn, series, 'series')
+
+                # If user inputs 6:
+        elif choice == 6:
+            print("\n6. Quitting out of the program... ")
+
+
+print("Program Terminated!")
 
 
 if __name__ == "__main__":
